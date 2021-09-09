@@ -1,7 +1,7 @@
 /*
  * Created by Trevor Sears <trevor@trevorsears.com> (https://trevorsears.com/).
  * 8:48 PM -- June 16th, 2019.
- * Project: <name>
+ * Project: @jsdsl/semaphore
  */
 
 const gulp = require("gulp");

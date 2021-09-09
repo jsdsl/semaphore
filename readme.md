@@ -1,18 +1,34 @@
-# JavaScript Module Template
-This repository serves as an easy-start template for JavaScript/TypeScript NPM packages. 
+# JSDSL - Semaphore
 
-Simply clone the repository into a directory:
+A Promise-based semaphore implementation.
 
-```bash
-$ git clone git@github.com:T99/js-module-template.git my-new-project
+### [Find @jsdsl/semaphore on NPM.](https://www.npmjs.com/package/@jsdsl/semaphore)
+
+## Table of Contents
+
+ - [Installation](#installation)
+ - [Basic Usage](#basic-usage)
+ - [Documentation](#documentation)
+ - [License](#license)
+
+## Installation
+
+Install from NPM with
+
+```
+$ npm install --save @jsdsl/semaphore
 ```
 
-And then run the init script:
+## Basic Usage
 
-```bash
-$ ./init.py
-```
+Basic usage instructions here.
 
-The init script will interactively prompt you for package information and then automatically build the package, correct and fill-in package information, and install the specified NPM packages already included in the provided `package.json`.
+## Documentation
 
-And that's it! Your project is ready to go.
+See the [wiki](https://github.com/@jsdsl/semaphore/wiki) for full documentation.
+
+## License
+
+@jsdsl/semaphore is made available under the GNU General Public License v3.
+
+Copyright (C) 2021 Trevor Sears
