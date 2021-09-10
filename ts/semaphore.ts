@@ -89,25 +89,17 @@ export class Semaphore {
 			
 		}
 		
-		console.log(`a`);
-		
 		let lockID: string;
 		
 		// Generate a unique ID for the new lock.
 		do lockID = crypto.randomBytes(16).toString("hex");
 		while (this.outstandingLocks.hasOwnProperty(lockID));
 		
-		console.log(`b`);
-		
 		// Add the new lock to the internal map of locks.
 		this.outstandingLocks[lockID] = new SemaphoreLock(lockID);
 		
-		console.log(`c`);
-		
 		// Make the lock delete itself once it is relinquished.
 		this.outstandingLocks[lockID].then((): boolean => delete this.outstandingLocks[lockID]);
-		
-		console.log(`d`);
 		
 		return this.outstandingLocks[lockID];
 		
