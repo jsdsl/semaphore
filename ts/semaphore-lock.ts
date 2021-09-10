@@ -20,42 +20,87 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-export class SemaphoreLock {
+/**
+ * A lock whose holder is being guaranteed some form of mutual exclusion to a resource, as provided by the issuing
+ * {@link Semaphore}.
+ * 
+ * @author Trevor Sears <trevor@trevorsears.com> (https://trevorsears.com/)
+ * @version v1.0.0
+ * @since v0.1.0
+ */
+export class SemaphoreLock implements PromiseLike<string> {
 	
+	/**
+	 * The string ID of this lock, uniquely identifying it to it's issuing {@link Semaphore}.
+	 */
 	protected readonly id: string;
 	
-	protected relinquishmentPromise: Promise<string>;
+	/**
+	 * A Promise that resolves once this lock has been released.
+	 */
+	protected releasePromise: Promise<string>;
 	
-	protected relinquisherFunction!: () => void;
-
+	/**
+	 * A function that is used internally to release this lock.
+	 * 
+	 * This is a reference to the `#resolve` callback of the `releasePromise` Promise belonging to this lock.
+	 */
+	protected releaseFunction!: (id: string) => void;
+	
+	/**
+	 * Initializes a new SemaphoreLock instance with the provided ID.
+	 * 
+	 * @param {string} id The string ID of this lock that should uniquely identify it to it's issuing {@link Semaphore}.
+	 */
 	public constructor(id: string) {
 		
 		this.id = id;
 		
-		this.relinquishmentPromise = new Promise<string>((resolve: (id: string) => void): void => {
+		this.releasePromise = new Promise<string>((resolve: (id: string) => void): void => {
 			
-			this.relinquisherFunction = (): void => resolve(this.id);
+			this.releaseFunction = resolve;
 			
 		});
 		
 	}
 	
+	/**
+	 * Returns the string ID of this lock, uniquely identifying it to it's issuing {@link Semaphore}.
+	 * 
+	 * @returns {string} The string ID of this lock.
+	 */
 	public getID(): string {
 		
 		return this.id;
 		
 	}
 	
-	public relinquish(): void {
+	/**
+	 * Releases this lock, relinquishing the resource(s) being held by this lock back to its parent {@link Semaphore}.
+	 */
+	public release(): void {
 		
-		this.relinquisherFunction();
+		this.releaseFunction(this.getID());
 		
 	}
 	
-	public onRelinquish(): Promise<string> {
+	/**
+	 * Returns a Promise that will resolve to the string ID of this lock once this lock is released.
+	 * 
+	 * @param {((value: string) => (PromiseLike<TResult1> | TResult1)) | undefined | null} onFulfilled A callback used
+	 * to indicate that this lock has released. The string ID of this lock will be passed as the first argument to this
+	 * callback.
+	 * @param {((reason: any) => (PromiseLike<TResult2> | TResult2)) | undefined | null} onRejected A callback used to
+	 * indicate that this Promise has somehow failed. This should never be called from this object.
+	 * @returns {PromiseLike<TResult1 | TResult2>} A Promise that will resolve to the string ID of this lock once this
+	 * lock is released.
+	 */
+	public then<TResult1 = string, TResult2 = never>(
+		onFulfilled?: ((value: string) => (PromiseLike<TResult1> | TResult1)) | undefined | null,
+		onRejected?: ((reason: any) => (PromiseLike<TResult2> | TResult2)) | undefined | null
+	): PromiseLike<TResult1 | TResult2> {
 		
-		return this.relinquishmentPromise;
-		
+		return this.releasePromise.then<TResult1, TResult2>(onFulfilled, onRejected);
 	}
 	
 }

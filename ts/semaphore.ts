@@ -24,61 +24,115 @@ import "promise-any-polyfill";
 import crypto from "crypto";
 import { SemaphoreLock } from "./semaphore-lock";
 
+/**
+ * A string mapping from lock IDs to their matching {@link SemaphoreLock}s.
+ */
 type OutstandingLockMap = {
 	
-	[id: string]: Promise<string>
+	[id: string]: SemaphoreLock
 	
 }
 
+/**
+ * A implementation of a semaphore data structure, which seeks to restrict the number of accessors that simultaneously
+ * have access to a given resource or set of resources.
+ * 
+ * @author Trevor Sears <trevor@trevorsears.com> (https://trevorsears.com/)
+ * @version v1.0.0
+ * @since v0.1.0
+ */
 export class Semaphore {
 	
+	/**
+	 * The maximum number of locks that are allowed to be simultaneously distributed by this semaphore. 
+	 */
 	protected readonly maxLockCount: number;
 	
+	/**
+	 * A mapping of lock IDs to their matching {@link SemaphoreLock}s, wherein each value in the map represents one
+	 * unreleased lock that has been distributed by this semaphore.
+	 */
 	protected outstandingLocks: OutstandingLockMap;
 	
-	public constructor(maxLockCount: number) {
+	/**
+	 * Initializes a new Semaphore with the provided maximum number of allowable distributed locks (defaults to 1).
+	 * 
+	 * @param {number} maxLockCount The maximum number of locks that are allowed to be simultaneously distributed by
+	 * this semaphore.
+	 */
+	public constructor(maxLockCount: number = 1) {
 		
 		this.maxLockCount = maxLockCount;
 		this.outstandingLocks = {};
 		
 	}
-
+	
+	/**
+	 * Returns a Promise that resolves to a SemaphoreLock once one is available.
+	 * 
+	 * The first n (where n = maxLockCount, the integer value provided in the constructor call) calls to `#getLock` will
+	 * resolve 'instantly', whereas further calls will be forced to wait until the locks obtained by previous calls are
+	 * released by their owners.
+	 * 
+	 * Once the resulting Promise resolves, the caller is guaranteed to be be one of the admitted frames (of a
+	 * maximum of n admitted frames, where n = maxLockCount, the integer value provided in the constructor call) with
+	 * access to the resource/critical section being 'guarded' by this semaphore.
+	 * 
+	 * @returns {Promise<SemaphoreLock>} A Promise that resolves to a SemaphoreLock once one is available.
+	 */
 	public async getLock(): Promise<SemaphoreLock> {
 		
 		// While we are at or (hopefully not) above capacity...
 		while (this.getLockCount() >= this.getMaximumLockCount()) {
 			
-			console.log(`Waiting to remove promise...`);
-			
-			let resolution: any = await Promise.any(Object.values(this.outstandingLocks))
-			
-			console.log(`resolution: ${resolution}`);
-			
-			// Remove the first resolved promise that we find.
-			delete this.outstandingLocks[resolution];
-			
-			console.log(`...found promise to remove!`);
+			await Promise.any(Object.values(this.outstandingLocks));
 			
 		}
 		
-		console.log(`Generating new lock.`);
+		console.log(`a`);
 		
-		let id: string = crypto.randomBytes(16).toString("hex");
+		let lockID: string;
 		
-		let lock: SemaphoreLock = new SemaphoreLock(id);
+		// Generate a unique ID for the new lock.
+		do lockID = crypto.randomBytes(16).toString("hex");
+		while (this.outstandingLocks.hasOwnProperty(lockID));
 		
-		this.outstandingLocks[id] = lock.onRelinquish();
+		console.log(`b`);
 		
-		return lock;
+		// Add the new lock to the internal map of locks.
+		this.outstandingLocks[lockID] = new SemaphoreLock(lockID);
+		
+		console.log(`c`);
+		
+		// Make the lock delete itself once it is relinquished.
+		this.outstandingLocks[lockID].then((): boolean => delete this.outstandingLocks[lockID]);
+		
+		console.log(`d`);
+		
+		return this.outstandingLocks[lockID];
 		
 	}
 	
+	/**
+	 * Returns a count of the number of locks distributed by this semaphore that are currently still in circulation/in-
+	 * use/unreleased.
+	 * 
+	 * @returns {number} A count of the number of locks distributed by this semaphore that are currently still in
+	 * circulation/in-use/unreleased.
+	 */
 	public getLockCount(): number {
 		
 		return Object.keys(this.outstandingLocks).length;
 		
 	}
 	
+	/**
+	 * Returns a number representative of the maximum number of locks that can be simultaneously distributed by this
+	 * semaphore.
+	 * 
+	 * @returns {number} A number representative of the maximum number of locks that can be simultaneously distributed
+	 * by this semaphore.
+	 */
 	public getMaximumLockCount(): number {
 		
 		return this.maxLockCount;
