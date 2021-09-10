@@ -12,7 +12,13 @@
 		"type": "git",
 		"url": "git+https://github.com/jsdsl/semaphore.git"
 	},
-	"keywords": [],
+	"keywords": [
+		"semaphore",
+		"async",
+		"mutual-exclusion",
+		"mutex",
+		"typescript"
+	],
 	"author": "Trevor Sears <trevor@trevorsears.com> (https://trevorsears.com/)",
 	"license": "GPL-3.0-or-later",
 	"bugs": {
