@@ -106,6 +106,29 @@ export class Semaphore {
 	}
 	
 	/**
+	 * Performs the specified operation/callback once a lock has been obtained, returning a Promise that will resolve
+	 * to the return value of the operation once it is complete.
+	 *
+	 * Notes:
+	 *  - The obtained lock will be automatically released once the provided operation is complete.
+	 *  - If the provided callback returns a Promise, that result will be awaited as well.
+	 *
+	 * @param {() => (PromiseLike<T> | T)} operation The operation to perform once a lock is obtained.
+	 * @returns {Promise<T>} A Promise that will resolve to the return value of the operation once it is complete.
+	 */
+	public async performLockedOperation<T>(operation: () => (T | PromiseLike<T>)): Promise<T> {
+		
+		let lock: SemaphoreLock = await this.getLock();
+		
+		let result: T = await operation();
+		
+		lock.release();
+		
+		return result;
+		
+	}
+	
+	/**
 	 * Returns a count of the number of locks distributed by this semaphore that are currently still in circulation/in-
 	 * use/unreleased.
 	 * 
