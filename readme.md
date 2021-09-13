@@ -7,8 +7,7 @@ A Promise-based semaphore implementation.
 ## Table of Contents
 
  - [Installation](#installation)
- - [Basic Usage](#basic-usage)
- - [Documentation](#documentation)
+ - [Usage](#usage)
  - [License](#license)
 
 ## Installation
@@ -19,7 +18,7 @@ Install from NPM with
 $ npm install --save @jsdsl/semaphore
 ```
 
-## Basic Usage
+## Usage
 
 ### An Overview of Semaphores
 
