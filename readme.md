@@ -207,9 +207,9 @@ let lock: SemaphoreLock = await (new Semaphore(8)).getLock();
 console.log(lock.getID()); //=> '1343ee064f8fd176b797a1ee5b84d862'
 ```
 
-#### `lock.then(...)`
+#### `lock.waitForRelease()`
 
-`lock.then(...)` makes all `SemaphoreLock` instances 'thenable'/'awaitable', meaning that you can do the following:
+`lock.then(...)` returns a Promise that will resolve to the string ID of this lock once this lock is released.
 
 ```typescript
 import { Semaphore, SemaphoreLock } from "@jsdsl/semaphore";
@@ -218,9 +218,11 @@ let lock: SemaphoreLock = await (new Semaphore(16)).getLock();
 
 setTimeout((): void => lock.release(), 2000);
 
-await lock;
-
-console.log(`Lock released!`); //=> Will print after 2000 milliseconds.
+lock.waitForRelease().then((): void => {
+	
+	console.log(`Lock released!`); //=> Will print after 2000 milliseconds.
+	
+});
 ```
 
 ## License

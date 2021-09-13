@@ -28,7 +28,7 @@
  * @version v1.0.0
  * @since v0.1.0
  */
-export class SemaphoreLock implements PromiseLike<string> {
+export class SemaphoreLock {
 	
 	/**
 	 * The string ID of this lock, uniquely identifying it to it's issuing {@link Semaphore}.
@@ -86,21 +86,13 @@ export class SemaphoreLock implements PromiseLike<string> {
 	
 	/**
 	 * Returns a Promise that will resolve to the string ID of this lock once this lock is released.
-	 * 
-	 * @param {((value: string) => (PromiseLike<TResult1> | TResult1)) | undefined | null} onFulfilled A callback used
-	 * to indicate that this lock has released. The string ID of this lock will be passed as the first argument to this
-	 * callback.
-	 * @param {((reason: any) => (PromiseLike<TResult2> | TResult2)) | undefined | null} onRejected A callback used to
-	 * indicate that this Promise has somehow failed. This should never be called from this object.
-	 * @returns {PromiseLike<TResult1 | TResult2>} A Promise that will resolve to the string ID of this lock once this
-	 * lock is released.
+	 *
+	 * @returns {Promise<string>} A Promise that will resolve to the string ID of this lock once this lock is released.
 	 */
-	public then<TResult1 = string, TResult2 = never>(
-		onFulfilled?: ((value: string) => (PromiseLike<TResult1> | TResult1)) | undefined | null,
-		onRejected?: ((reason: any) => (PromiseLike<TResult2> | TResult2)) | undefined | null
-	): PromiseLike<TResult1 | TResult2> {
+	public waitForRelease(): Promise<string> {
 		
-		return this.releasePromise.then<TResult1, TResult2>(onFulfilled, onRejected);
+		return this.releasePromise;
+		
 	}
 	
 }

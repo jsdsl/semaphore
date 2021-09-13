@@ -99,7 +99,7 @@ export class Semaphore {
 		this.outstandingLocks[lockID] = new SemaphoreLock(lockID);
 		
 		// Make the lock delete itself once it is relinquished.
-		this.outstandingLocks[lockID].then((): boolean => delete this.outstandingLocks[lockID]);
+		this.outstandingLocks[lockID].waitForRelease().then((): boolean => delete this.outstandingLocks[lockID]);
 		
 		return this.outstandingLocks[lockID];
 		
