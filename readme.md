@@ -38,7 +38,9 @@ lock!
 ```typescript
 import { Semaphore, SemaphoreLock } from "@jsdsl/semaphore";
 
-const n: number = 2; // This is the number of locks that we want to allow our semaphore to distribute simultaneously.
+// This is the number of locks that we want to
+// allow our semaphore to distribute simultaneously.
+const n: number = 2;
 
 let semaphore: Semaphore = new Semaphore(n);
 
@@ -72,8 +74,12 @@ the earlier people leave:
 ```typescript
 import { Semaphore, SemaphoreLock } from "@jsdsl/semaphore";
 
-const capacity: number = 666; // Our nightclub can hold exactly 666 people!
-const partygoers: number = 2500; // But 2,500 people want to party at our nightclub!
+// Our nightclub can hold exactly 666 people!
+const capacity: number = 666;
+
+// But 2,500 people want to party at our nightclub!
+const partygoers: number = 2500;
+
 let lux: Semaphore = new Semaphore(capacity);
 
 for (let i: number = 0; i < partygoers; i++) {
@@ -94,8 +100,12 @@ Let's let them party for a while, and then they can leave.
 ```typescript
 import { Semaphore, SemaphoreLock } from "@jsdsl/semaphore";
 
-const capacity: number = 666; // Our nightclub can hold exactly 666 people!
-const partygoers: number = 2500; // But 2,500 people want to party at our nightclub!
+// Our nightclub can hold exactly 666 people!
+const capacity: number = 666;
+
+// But 2,500 people want to party at our nightclub!
+const partygoers: number = 2500;
+
 let lux: Semaphore = new Semaphore(capacity);
 
 for (let i: number = 0; i < partygoers; i++) {
@@ -118,14 +128,17 @@ requests - a semaphore would be a great solution!
 ```typescript
 import { Semaphore, SemaphoreLock } from "@jsdsl/semaphore";
 
-const ALLOWABLE_CONCURRENT_REQUESTS: number = 3; // We don't want to to allow any more than 3 concurrent requests.
+// We don't want to to allow any more than 3 concurrent requests.
+const ALLOWABLE_CONCURRENT_REQUESTS: number = 3;
+
 let requestSemaphore: Semaphore = new Semaphore(capacity);
 
 let scrapingPromises: Promise<ScrapedPage>[] = [];
 
 for (let url of urlsToScrape) {
 	
-	scrapingPromises.push(new Promise<ScrapedPage>((resolve: (value: ScrapedPage) => void): void => {
+	scrapingPromises.push(new Promise<ScrapedPage>(
+		(resolve: (value: ScrapedPage) => void): void => {
 		
 		requestSemaphore.getLock().then((lock: SemaphoreLock): void => {
 			
@@ -144,7 +157,8 @@ for (let url of urlsToScrape) {
 
 await Promise.all(scrapingPromises);
 
-// All pages have been asynchronously scraped while still ensuring we're not bombarding some poor webmaster's server!
+// All pages have been asynchronously scraped while still
+// ensuring we're not bombarding some poor webmaster's server!
 ```
 
 Ignoring the callback-hell that we've created, we have nonetheless successfully ensured that we only ever have a maximum
