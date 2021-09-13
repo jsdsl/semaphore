@@ -38,7 +38,7 @@ type OutstandingLockMap = {
  * have access to a given resource or set of resources.
  * 
  * @author Trevor Sears <trevor@trevorsears.com> (https://trevorsears.com/)
- * @version v1.0.0
+ * @version v1.1.0
  * @since v0.1.0
  */
 export class Semaphore {
