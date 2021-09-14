@@ -133,11 +133,19 @@ export class Semaphore {
 		
 		let lock: SemaphoreLock = await this.getLock();
 		
-		let result: T = await operation();
-		
-		lock.release();
-		
-		return result;
+		try {
+
+			return await operation();
+			
+		} catch (error: any) {
+			
+			throw error;
+			
+		} finally {
+			
+			lock.release();
+			
+		}
 		
 	}
 	
