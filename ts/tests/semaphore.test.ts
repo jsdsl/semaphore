@@ -37,6 +37,8 @@ const n: number = 3;
 let semaphore: Semaphore;
 let locks: SemaphoreLock[];
 
+// TODO [9/14/2021 @ 10:51 AM] Write tests for promises that reject!!
+
 describe("Semaphore", (): void => {
 	
 	beforeEach((): void => {
@@ -145,76 +147,229 @@ describe("Semaphore", (): void => {
 	
 	describe("Semaphore#performLockedOperation works as expected.", (): void => {
 		
-		async function testForNValue(n: number): Promise<void> {
+		describe("Access is properly restricted.", (): void => {
 			
-			semaphore = new Semaphore(n);
-			
-			let criticalSectionObserverCount: number = 0;
-			let operations: Promise<any>[] = [];
-			
-			const iterations: number = Math.min(10, n * 3);
-			
-			for (let i: number = 0; i < iterations; i++) {
+			describe("For regularly resolving promises.", (): void => {
 				
-				operations.push(semaphore.performLockedOperation(async (): Promise<void> => {
+				async function testForNValue(n: number): Promise<void> {
 					
-					expect(criticalSectionObserverCount).toBeLessThanOrEqual(n - 1);
+					semaphore = new Semaphore(n);
 					
-					criticalSectionObserverCount++;
+					let criticalSectionObserverCount: number = 0;
+					let operations: Promise<any>[] = [];
 					
-					expect(criticalSectionObserverCount).toBeLessThanOrEqual(n);
+					const iterations: number = Math.min(10, n * 3);
 					
-					await wait(250 + Math.random() * 250);
+					for (let i: number = 0; i < iterations; i++) {
+						
+						operations.push(semaphore.performLockedOperation(async (): Promise<void> => {
+							
+							expect(criticalSectionObserverCount).toBeLessThanOrEqual(n - 1);
+							
+							criticalSectionObserverCount++;
+							
+							expect(criticalSectionObserverCount).toBeLessThanOrEqual(n);
+							
+							await wait(250 + Math.random() * 250);
+							
+							expect(criticalSectionObserverCount).toBeLessThanOrEqual(n);
+							
+							criticalSectionObserverCount--;
+							
+							expect(criticalSectionObserverCount).toBeLessThanOrEqual(n - 1);
+							
+						}));
+						
+					}
 					
-					expect(criticalSectionObserverCount).toBeLessThanOrEqual(n);
+					await Promise.all(operations);
 					
-					criticalSectionObserverCount--;
-					
-					expect(criticalSectionObserverCount).toBeLessThanOrEqual(n - 1);
-					
-				}));
+				}
 				
-			}
+				test("For n = 1", async (): Promise<void> => {
+					
+					await testForNValue(1);
+					
+				}, 10_000);
+				
+				test("For n = 2", async (): Promise<void> => {
+					
+					await testForNValue(2);
+					
+				}, 10_000);
+				
+				test("For n = 3", async (): Promise<void> => {
+					
+					await testForNValue(3);
+					
+				}, 10_000);
+				
+				test("For n = 4", async (): Promise<void> => {
+					
+					await testForNValue(4);
+					
+				}, 10_000);
+				
+				test("For n = 5", async (): Promise<void> => {
+					
+					await testForNValue(5);
+					
+				}, 10_000);
+				
+				test("For n = 6", async (): Promise<void> => {
+					
+					await testForNValue(6);
+					
+				}, 10_000);
+				
+			});
 			
-			await Promise.all(operations);
+			describe("For rejecting promises.", (): void => {
+				
+				async function testForNValue(n: number): Promise<void> {
+					
+					semaphore = new Semaphore(n);
+					
+					let criticalSectionObserverCount: number = 0;
+					let operations: Promise<any>[] = [];
+					
+					const iterations: number = Math.min(10, n * 3);
+					
+					for (let i: number = 0; i < iterations; i++) {
+						
+						operations.push(semaphore.performLockedOperation((): Promise<void> => {
+							
+							return new Promise<void>(
+								(resolve: (value: void) => void, reject: (reason?: any) => void): void => {
+									
+									expect(criticalSectionObserverCount).toBeLessThanOrEqual(n - 1);
+									
+									criticalSectionObserverCount++;
+									
+									expect(criticalSectionObserverCount).toBeLessThanOrEqual(n);
+									
+									wait(250 + Math.random() * 250).then(() => {
+										
+										expect(criticalSectionObserverCount).toBeLessThanOrEqual(n);
+										
+										criticalSectionObserverCount--;
+										
+										expect(criticalSectionObserverCount).toBeLessThanOrEqual(n - 1);
+										
+										reject();
+										
+									});
+									
+								}
+							);
+							
+						}));
+						
+					}
+					
+					await Promise.allSettled(operations);
+					
+				}
+				
+				test("For n = 1", async (): Promise<void> => {
+					
+					await testForNValue(1);
+					
+				}, 10_000);
+				
+				test("For n = 2", async (): Promise<void> => {
+					
+					await testForNValue(2);
+					
+				}, 10_000);
+				
+				test("For n = 3", async (): Promise<void> => {
+					
+					await testForNValue(3);
+					
+				}, 10_000);
+				
+				test("For n = 4", async (): Promise<void> => {
+					
+					try {
+						
+						await testForNValue(4);
+						
+					} catch (e: any) {
+						
+						
+						
+					}
+					
+				}, 10_000);
+				
+				test("For n = 5", async (): Promise<void> => {
+					
+					await testForNValue(5);
+					
+				}, 10_000);
+				
+				test("For n = 6", async (): Promise<void> => {
+					
+					await testForNValue(6);
+					
+				}, 10_000);
+				
+			});
 			
-		}
+		});
 		
-		test("For n = 1", async (): Promise<void> => {
+		describe("Expected result is returned.", (): void => {
 			
-			await testForNValue(1);
+			test("...from synchronous callback.", async (): Promise<void> => {
+				
+				await expect(semaphore.performLockedOperation(
+					(): string => "Hello, world!")
+				).resolves.toBe("Hello, world!");
+				
+			});
 			
-		}, 30_000);
+			test("...from asynchronous callback.", async (): Promise<void> => {
+				
+				await expect(semaphore.performLockedOperation((): Promise<string> => {
+					
+					return new Promise<string>((resolve: (value: string) => void): void => {
+						
+						setTimeout((): void => resolve("Hello, world!"), 750);
+						
+					});
+					
+				})).resolves.toBe("Hello, world!");
+				
+			});
+			
+		});
 		
-		test("For n = 2", async (): Promise<void> => {
+		describe("Errors are properly propagated.", (): void => {
 			
-			await testForNValue(2);
+			test("...from synchronous callback.", async (): Promise<void> => {
+				
+				await expect(semaphore.performLockedOperation((): void => {
+					throw new Error("Goodbye, world!");
+				})).rejects.toStrictEqual(new Error("Goodbye, world!"));
+				
+			});
 			
-		}, 30_000);
-		
-		test("For n = 3", async (): Promise<void> => {
+			test("...from asynchronous callback.", async (): Promise<void> => {
+				
+				await expect(semaphore.performLockedOperation((): Promise<string> => {
+					
+					return new Promise<string>((resolve: any, reject: (error: Error) => void): void => {
+						
+						setTimeout((): void => reject(new Error("Goodbye, world!")), 750);
+						
+					});
+					
+				})).rejects.toStrictEqual(new Error("Goodbye, world!"));
+				
+			});
 			
-			await testForNValue(3);
-			
-		}, 30_000);
-		
-		test("For n = 4", async (): Promise<void> => {
-			
-			await testForNValue(4);
-			
-		}, 30_000);
-		
-		test("For n = 5", async (): Promise<void> => {
-			
-			await testForNValue(5);
-			
-		}, 30_000);
-		
-		test("For n = 6", async (): Promise<void> => {
-			
-			await testForNValue(6);
-			
-		}, 30_000);
+		});
 		
 	});
 	
