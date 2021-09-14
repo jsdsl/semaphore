@@ -29,6 +29,8 @@ In more literal terms, a semaphore distributes a limited number of locks (for ex
 additional callers seeking locks to wait until enough locks have been released that distributing additional locks would
 not put the semaphore 'over capacity' by distributing more than `n` locks.
 
+---
+
 ### Getting Our First Lock
 
 Initializing a semaphore and getting a lock is super simple! We just need to initialize a `Semaphore` and ask for a
@@ -48,6 +50,8 @@ let lock: SemaphoreLock = await semaphore.getLock();
 
 There we go! We have our first lock!
 
+---
+
 ### All Good Things Must End
 
 Eventually, in order for the semaphore to really do anything for you, you're going to need to let it go.
@@ -59,6 +63,8 @@ lock.release();
 ```
 
 Yep, a one-liner. Not that impressive. But still, you've now successfully acquired and released your first lock!
+
+---
 
 ### Reaching the Limit
 
@@ -118,6 +124,8 @@ for (let i: number = 0; i < partygoers; i++) {
 }
 ```
 
+---
+
 ### A More Concrete Example
 
 If you're still a little confused as to the practical nature of a Semaphore, take this final example: imagine you're
@@ -162,6 +170,102 @@ await Promise.all(scrapingPromises);
 
 Ignoring the callback-hell that we've created, we have nonetheless successfully ensured that we only ever have a maximum
 of 3 concurrent outgoing requests to the webserver at any given time! Cool!
+
+As a small bonus, let's look at how we can (slightly) clean up that callback mess.
+
+---
+
+### A Shorthand For `get lock --> use lock --> release lock`
+
+When using semaphores, there is a recurring pattern of:
+
+ - Wait to acquire the lock that we need to be able to safely perform our desired operation.
+ - Perform our desired operation.
+ - Release the lock so that others may use it.
+
+Having to type out the full semaphore idiom every time is needlessly verbose and can lead to errors if a lock is
+forgotten. Here's that full idiom we're talking about - you might recognize it from the last example:
+
+```typescript
+semaphore.getLock().then((lock: SemaphoreLock): void => {
+	
+	doStuff();
+	
+	lock.release();
+
+});
+
+// Or with async/await, we can get a -little- cleaner, but still not great to
+// have to type it out every time:
+
+let lock: SemaphoreLock = await semaphore.getLock();
+
+doStuff();
+
+lock.release();
+```
+
+But not to worry, we have a solution! `Semaphore.performLockedOperation` allows us to do all of this in one step. This
+method takes a callback and returns a Promise that will resolve to the return value of the provided callback.
+
+```typescript
+let stuffResult: Promise<MyType> = semaphore.performLockedOperation((): MyType => doStuff());
+```
+
+So what's actually happening here? Well it's actually really simple. Here's the entire method definition for
+`performLockedOperation`:
+
+```typescript
+public async performLockedOperation<T>(operation: () => (T | PromiseLike<T>)): Promise<T> {
+    
+    let lock: SemaphoreLock = await this.getLock();
+    
+    let result: T = await operation();
+    
+    lock.release();
+    
+    return result;
+    
+}
+```
+
+All we're doing is getting a lock, performing our operation, and releasing the lock (and then returning the result of
+the operation)! Just like before!
+
+Keen observers might also note that callbacks returning Promises are also supported - if your callback returns a
+Promise, `performLockedOperation` will wait for that Promise to resolve so that it can return the unwrapped result.
+
+```typescript
+async function searchForTheDetective(): Promise<Detective> { /* ... */ }
+
+let detective: Detective = semaphore.performLockedOperation(searchForTheDetective);
+```
+
+So, if we were to try to clean up our earlier callback mess, it might look something like this:
+
+```typescript
+import { Semaphore, SemaphoreLock } from "@jsdsl/semaphore";
+
+// We don't want to to allow any more than 3 concurrent requests.
+const ALLOWABLE_CONCURRENT_REQUESTS: number = 3;
+
+let requestSemaphore: Semaphore = new Semaphore(capacity);
+
+let scrapingPromises: Promise<ScrapedPage>[] = [];
+
+for (let url of urlsToScrape) {
+	
+	scrapingPromises.push(requestSemaphore.performLockedOperation(
+		(): Promise<ScrapedPage> => scrapePage(url)
+	));
+	
+}
+
+await Promise.all(scrapingPromises);
+
+// All pages have been asynchronously scraped while still
+// ensuring we're not bombarding some poor webmaster's server!
+```
 
 ### Other Potentially Useful Stuff
 
