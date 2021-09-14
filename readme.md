@@ -267,6 +267,8 @@ await Promise.all(scrapingPromises);
 // ensuring we're not bombarding some poor webmaster's server!
 ```
 
+---
+
 ### Other Potentially Useful Stuff
 
 #### `semaphore.getLockCount()`
@@ -286,6 +288,8 @@ await semaphore.getLock();
 console.log(semaphore.getLockCount()); //=> 3
 ```
 
+---
+
 #### `semaphore.getMaximumLockCount()`
 
 `semaphore.getMaximumLockCount()` returns a number representative of the maximum number of locks that can be
@@ -299,6 +303,8 @@ let semaphore: Semaphore = new Semaphore(42);
 console.log(semaphore.getMaximumLockCount()); //=> 42
 ```
 
+---
+
 #### `lock.getID()`
 
 `lock.getID()` returns the string ID of this lock, uniquely identifying it to it's issuing `Semaphore`.
@@ -310,6 +316,8 @@ let lock: SemaphoreLock = await (new Semaphore(8)).getLock();
 
 console.log(lock.getID()); //=> '1343ee064f8fd176b797a1ee5b84d862'
 ```
+
+---
 
 #### `lock.waitForRelease()`
 
