@@ -88,10 +88,10 @@ const partygoers: number = 2500;
 let lux: Semaphore = new Semaphore(capacity);
 
 for (let i: number = 0; i < partygoers; i++) {
-	
-	// Enter the nightclub!
-	let partygoer: SemaphoreLock = await lux.getLock();
-	
+    
+    // Enter the nightclub!
+    let partygoer: SemaphoreLock = await lux.getLock();
+    
 }
 ```
 
@@ -114,13 +114,13 @@ const partygoers: number = 2500;
 let lux: Semaphore = new Semaphore(capacity);
 
 for (let i: number = 0; i < partygoers; i++) {
-	
-	// Enter the nightclub!
-	let partygoer: SemaphoreLock = await lux.getLock();
-	
-	// Let them leave after a little while.
-	setTimeout((): void => partygoer.release(), Math.random() * PARTY_TIME);
-	
+    
+    // Enter the nightclub!
+    let partygoer: SemaphoreLock = await lux.getLock();
+    
+    // Let them leave after a little while.
+    setTimeout((): void => partygoer.release(), Math.random() * PARTY_TIME);
+    
 }
 ```
 
@@ -143,23 +143,23 @@ let requestSemaphore: Semaphore = new Semaphore(capacity);
 let scrapingPromises: Promise<ScrapedPage>[] = [];
 
 for (let url of urlsToScrape) {
-	
-	scrapingPromises.push(new Promise<ScrapedPage>(
-		(resolve: (value: ScrapedPage) => void): void => {
-		
-		requestSemaphore.getLock().then((lock: SemaphoreLock): void => {
-			
-			scrapePage(url).then((scrapedPage: ScrapedPage): void => {
-				
-				lock.release();
-				resolve(scrapedPage);
-				
-			});
-			
-		});
-		
-	}));
-	
+    
+    scrapingPromises.push(new Promise<ScrapedPage>(
+        (resolve: (value: ScrapedPage) => void): void => {
+        
+        requestSemaphore.getLock().then((lock: SemaphoreLock): void => {
+            
+            scrapePage(url).then((scrapedPage: ScrapedPage): void => {
+                
+                lock.release();
+                resolve(scrapedPage);
+                
+            });
+            
+        });
+        
+    }));
+    
 }
 
 await Promise.all(scrapingPromises);
@@ -188,11 +188,11 @@ forgotten. Here's that full idiom we're talking about - you might recognize it f
 
 ```typescript
 semaphore.getLock().then((lock: SemaphoreLock): void => {
-	
-	doStuff();
-	
-	lock.release();
-
+    
+    doStuff();
+    
+    lock.release();
+    
 });
 
 // Or with async/await, we can get a -little- cleaner, but still not great to
@@ -254,11 +254,11 @@ let requestSemaphore: Semaphore = new Semaphore(capacity);
 let scrapingPromises: Promise<ScrapedPage>[] = [];
 
 for (let url of urlsToScrape) {
-	
-	scrapingPromises.push(requestSemaphore.performLockedOperation(
-		(): Promise<ScrapedPage> => scrapePage(url)
-	));
-	
+    
+    scrapingPromises.push(requestSemaphore.performLockedOperation(
+        (): Promise<ScrapedPage> => scrapePage(url)
+    ));
+    
 }
 
 await Promise.all(scrapingPromises);
@@ -331,9 +331,9 @@ let lock: SemaphoreLock = await (new Semaphore(16)).getLock();
 setTimeout((): void => lock.release(), 2000);
 
 lock.waitForRelease().then((): void => {
-	
-	console.log(`Lock released!`); //=> Will print after 2000 milliseconds.
-	
+    
+    console.log(`Lock released!`); //=> Will print after 2000 milliseconds.
+    
 });
 ```
 
