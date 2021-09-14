@@ -68,6 +68,23 @@ export class Semaphore {
 	}
 	
 	/**
+	 * Returns an array of Promises that each resolve to the ID of a lock belonging to this semaphore once that given
+	 * lock is released.
+	 * 
+	 * Each of the returned Promises originates from an unreleased lock belonging to this semaphore.
+	 * 
+	 * @returns {Promise<string>[]} An array of Promises that each resolve to the ID of a lock belonging to this
+	 * semaphore.
+	 */
+	protected getLockPromises(): Promise<string>[] {
+		
+		return Object.values(this.outstandingLocks).map(
+			(lock: SemaphoreLock): Promise<string> => lock.waitForRelease()
+		);
+		
+	}
+	
+	/**
 	 * Returns a Promise that resolves to a SemaphoreLock once one is available.
 	 * 
 	 * The first n (where n = maxLockCount, the integer value provided in the constructor call) calls to `#getLock` will
@@ -82,12 +99,8 @@ export class Semaphore {
 	 */
 	public async getLock(): Promise<SemaphoreLock> {
 		
-		// While we are at or (hopefully not) above capacity...
-		while (this.getLockCount() >= this.getMaximumLockCount()) {
-			
-			await Promise.any(Object.values(this.outstandingLocks));
-			
-		}
+		// While we are at or (hopefully not) above capacity, wait for a lock to release.
+		while (this.getLockCount() >= this.getMaximumLockCount()) await Promise.any(this.getLockPromises());
 		
 		let lockID: string;
 		
