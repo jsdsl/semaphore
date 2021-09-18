@@ -321,7 +321,7 @@ console.log(lock.getID()); //=> '1343ee064f8fd176b797a1ee5b84d862'
 
 #### `lock.waitForRelease()`
 
-`lock.then(...)` returns a Promise that will resolve to the string ID of this lock once this lock is released.
+`lock.waitForRelease(...)` returns a Promise that will resolve to the string ID of this lock once this lock is released.
 
 ```typescript
 import { Semaphore, SemaphoreLock } from "@jsdsl/semaphore";
