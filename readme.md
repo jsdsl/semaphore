@@ -138,7 +138,7 @@ import { Semaphore, SemaphoreLock } from "@jsdsl/semaphore";
 // We don't want to to allow any more than 3 concurrent requests.
 const ALLOWABLE_CONCURRENT_REQUESTS: number = 3;
 
-let requestSemaphore: Semaphore = new Semaphore(capacity);
+let requestSemaphore: Semaphore = new Semaphore(ALLOWABLE_CONCURRENT_REQUESTS);
 
 let scrapingPromises: Promise<ScrapedPage>[] = [];
 
